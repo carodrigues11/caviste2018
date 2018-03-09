@@ -20,7 +20,7 @@ $app->get('/api/', function (Request $request, Response $response, array $args) 
     echo "API!";
 });
 
-$app->get('/api/wines/', function (Request $request, Response $response, array $args) {
+$app->get('/api/wines', function (Request $request, Response $response, array $args) {
     $wines = R::findAll('wine');
     return json_encode($wines,JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
 });
