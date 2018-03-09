@@ -25,9 +25,12 @@ $app->get('/api/wines', function (Request $request, Response $response, array $a
     return json_encode($wines,JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
 });
 
-$app->get('/api/search/{name}', function (Request $request, Response $response, array $args) {
-    $name = R::load('wine', '');
-    echo $name;
+$app->get('/api/wines/search/{name}', function (Request $request, Response $response, array $args) {
+    $name = $args['name'];
+    
+    $wines = R::find('wine','name Like ?',["%$name%"]);
+    //var_dump($wines);
+    return json_encode($wines,JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
 });
 
 $app->get('/api/wines/{id}', function (Request $request, Response $response, array $args) {

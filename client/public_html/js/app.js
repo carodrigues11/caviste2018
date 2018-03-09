@@ -4,6 +4,28 @@
  * and open the template in the editor.
  */
 
+function reportError(message, type='secondary'){
+   
+    $('#toolbar .alert').html(message);
+    
+    switch(type) {
+        case 'error': 
+            $('#toolbar .alert').addClass('alert-danger'); break;
+        case 'success':
+            $('#toolbar .alert').addClass('alert-success'); break;
+        default:
+            $('#toolbar .alert').addClass('alert-secondary'); break;
+    }
+}
+
+
+function removeError(){
+   
+    $('#toolbar .alert').html('');
+    $('#toolbar .alert').removeClass().addClass('alert');
+    
+}
+
 
 $(document).ready(function(){
     const API_URL = 'http://caviste.localhost/api';
@@ -12,7 +34,7 @@ $(document).ready(function(){
     
     $('#liste').empty();
     
-    jQuery.get(API_URL + '/wines',function(data){
+    $.get(API_URL + '/wines',function(data){
         vins = JSON.parse(data);
         
         $.each(vins, function(key,vin){
@@ -20,33 +42,46 @@ $(document).ready(function(){
         });
         
     }).fail(function(){
-        let notification = '<div class="alert alert-danger" role="alert">Désolé, service indosponible</div>';
-        
-        $('#toolbar').append(notification);
-        
+        reportError('Désolé, service indisponible','error');
     });
     
     
     //Gestion de commande
-    $('#btSearch').on('click', function(){
+    
+    $('input[name=search]').on('keypress',function(){
+        if(event.keyCode == 13){
+            $('#btSearch').click();
+        }
         
-        let keyword = $('form#fmrSearch input[name=search]').val();
-        
-        $.get(API_URL + '/wines',function(data){
-        vins = JSON.parse(data);
-        
-        $.each(vins, function(key,vin){
-            $('#liste').append('<li class="list-group-item">'+vin.name+'</li>');
-        });
-        
-        }).fail(function(){
-            let notification = '<div class="alert alert-danger" role="alert">Désolé, service indosponible</div>';
-
-        $('#toolbar').append(notification);
         
     });
+    
+    
+    $('#btSearch').on('click', function(){
+        removeError();
+        let keyword = $('form#frmSearch input[name=search]').val();
         
+        if(keyword && keyword.trim() != ''){
         
+            $.get(API_URL + '/wines/search/'+keyword,function(data){
+                vins = JSON.parse(data);
+
+                //vider la liste
+                $('#liste').empty();
+
+                $.each(vins, function(key,vin){
+                    $('#liste').append('<li class="list-group-item">'+vin.name+'</li>');  
+                });    
+            }).fail(function(){
+                reportError('Désolé, le recherche n est pas disponible','error');
+
+            });
+        }else{
+           reportError('Veuillez entrer un mot-clé','error');
+        }
+        //Annuler l'envoi du formulaire
+        event.preventDefault();
+        return false;
     });
     
 });
