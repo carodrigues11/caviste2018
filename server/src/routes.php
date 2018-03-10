@@ -34,8 +34,9 @@ $app->get('/api/wines/search/{name}', function (Request $request, Response $resp
 });
 
 $app->get('/api/wines/{id}', function (Request $request, Response $response, array $args) {
-    $wine = R::load('wine', $id);
-    echo $wine;
+    $id = $args['id'];
+    $wine = R::load('wine',$id);
+    return json_encode($wine,JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
 });
 
 $app->post('/api/wines', function (Request $request, Response $response, array $args) {
