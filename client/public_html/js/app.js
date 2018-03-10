@@ -96,11 +96,38 @@ function clearForm(){
 
 }
 
+function getFormData() {
+    let vin = {};
+    
+    vin.id = $('#frmWine #idWine').val();
+    vin.name = $('#frmWine #nameWine').val();
+    vin.grapes = $('#frmWine #grapesWine').val();
+    vin.country = $('#frmWine #countryWine').val();
+    vin.region = $('#frmWine #regionWine').val();
+    vin.year = $('#frmWine #yearWine').val();
+    vin.description = $('#frmWine #notes').val();
+    vin.picture = $('#frmWine figure img').attr('src');
+    
+    if((vin.id.trim()!='' ? !$.isNumeric(vin.id): false) || !$.isNumeric(vin.year)
+            || vin.name.trim()=='' 
+            || vin.grapes.trim()=='' 
+            || vin.country.trim()=='' 
+            || vin.region.trim()=='' 
+            || vin.description.trim()=='' 
+            || vin.picture.trim()==''){
+        return null;
+    }
+    
+    return vin;
+}
 
 $(document).ready(function(){
     
-    
+    //Afficher la liste des vins
     showWines();
+    
+    //Préparer le formulaire
+    $('#yearWine').val((new Date()).getFullYear());
     
     
     //Gestion de commande
@@ -161,5 +188,38 @@ $(document).ready(function(){
         clearForm();
      });
     
+     $('#btSaveWine').on('click', function(){
+        //Retirer la notifiction d'erreur
+        removeError()
+       
+       //Récupérer les données du formulaire
+       let vin = getFormData();
+       
+       if(vin) {
+            //Sauver le vin dans la vase de données
+            $.post(API_URL+'/wines',vin, function(data){
+                if(data){
+                    reportError('Le vin a bien été enregistré','success');
+                } else {
+                     reportError('Désolé, Impossible de sauver ce vin!','error');
+
+                }
+
+            },'json').fail(function(){
+                reportError('Désolé, Impossible de sauver ce vin!','error');
+            });
+
+
+
+            //Annuler l'envoi du formulaire
+            event.preventDefault();
+            return false;
+        } else {
+            reportError('Veuillez remplir tous le formulaire en respectant les consignes','error');
+        }
+        
+        
+        
+            });
     
 });

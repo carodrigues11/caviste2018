@@ -40,8 +40,24 @@ $app->get('/api/wines/{id}', function (Request $request, Response $response, arr
 });
 
 $app->post('/api/wines', function (Request $request, Response $response, array $args) {
-    $newWine = R::dispense('wine');
-    echo $newWine;
+    $wineData = $request->getParsedBody();
+    
+    $wine = R::dispense('wine');
+    $wine->name = $wineData['name'];
+    $wine->grapes = $wineData['grapes'];
+    $wine->country = $wineData['country'];
+    $wine->region = $wineData['region'];
+    $wine->year = $wineData['year'];
+    $wine->picture = $wineData['picture'];
+    $wine->description = $wineData['description'];
+    
+    $id = R::store($wine);
+    
+    if($id = R::store($wine)){
+        return json_encode(true);
+    }
+    return json_encode(false);
+
 });
 
 $app->put('/api/wines/$id', function (Request $request, Response $response, array $args) {
