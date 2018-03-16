@@ -64,9 +64,15 @@ $app->put('/api/wines/$id', function (Request $request, Response $response, arra
     echo "Modifie les données du vin id ==10";
 });
 
-$app->delete('/api/wines/7', function (Request $request, Response $response, array $args) {
-    $wine = R::trash('wine', 7);
-    echo $wine;
+$app->delete('/api/wines/{id}', function (Request $request, Response $response, array $args) {
+    $id = $args['id'];
+    $wine = R::trash('wine', $id);
+    var_dump($wine);
+    
+    if(empty($wine)){
+        return json_encode(true);
+    }
+    return json_encode(false);
 });
 
 $app->get('/catalogue/', function (Request $request, Response $response, array $args) {

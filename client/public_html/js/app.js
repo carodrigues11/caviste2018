@@ -220,6 +220,34 @@ $(document).ready(function(){
         
         
         
-            });
+    });
+    
+    $('#btDeleteWine').on('click',function(){
+        //Retirer la notifiction d'erreur
+        removeError()
+        
+        let vin = getFormData();
+     
+        //Supprimer le vin
+       $.ajax({
+           'method':'DELETE',
+           'url':API_URL+'/wines/'+vin.id
+       }).done(function(data){
+            if(data){
+                showWines();
+               reportError('Le vin a bien été supprimé','success');
+            } else {
+               reportError('Désolé, Impossible de supprimer ce vin!','error');
+            }
+        }).fail(function(){
+            reportError('Désolé, Impossible de supprimer ce vin pour le moment!','error');
+        });
+
+
+        //Annuler l'envoi du formulaire
+         event.preventDefault();
+         return false;
+       
+    });
     
 });
