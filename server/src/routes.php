@@ -53,15 +53,29 @@ $app->post('/api/wines', function (Request $request, Response $response, array $
     
     $id = R::store($wine);
     
-    if($id = R::store($wine)){
+    if(R::store($wine)){
         return json_encode(true);
     }
     return json_encode(false);
 
 });
 
-$app->put('/api/wines/$id', function (Request $request, Response $response, array $args) {
-    echo "Modifie les données du vin id ==10";
+$app->put('/api/wines/{id}', function (Request $request, Response $response, array $args) {
+    $wineData = $request->getParsedBody();
+    
+    $wine = R::load('wine',$args['id']);
+    $wine->name = $wineData['name'];
+    $wine->grapes = $wineData['grapes'];
+    $wine->country = $wineData['country'];
+    $wine->region = $wineData['region'];
+    $wine->year = $wineData['year'];
+    $wine->picture = $wineData['picture'];
+    $wine->description = $wineData['description'];
+    
+    if(R::store($wine)){
+        return json_encode(true);
+    }
+    return json_encode(false);
 });
 
 $app->delete('/api/wines/{id}', function (Request $request, Response $response, array $args) {
@@ -73,6 +87,25 @@ $app->delete('/api/wines/{id}', function (Request $request, Response $response, 
         return json_encode(true);
     }
     return json_encode(false);
+});
+
+$app->post('/api/wines/{id}/pics', function (Request $request, Response $response, array $args) {
+   
+    $output_dir = "../public/pictures/";
+    if(isset($_FILES["newPicture"]) && empty($_FILES["myfile"]["error"]) ){
+        $fileName =$_FILES["newPicture"]["name"];
+        if(move_uploaded_file($_FILES["newPicture"]["tmp_name"],$output_dir)) {
+            $wine = R::load('wine',$args['id']);
+            if($wine){        
+                $wine->picture = $filename;
+                
+                if(R::store($wine)){
+                    return json_encode(true);
+                }
+            }
+        }
+        echo json_encode(false);
+     }
 });
 
 $app->get('/catalogue/', function (Request $request, Response $response, array $args) {

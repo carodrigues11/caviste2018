@@ -4,6 +4,7 @@
  * and open the template in the editor.
  */
 const API_URL = 'http://caviste.localhost/api';
+const CATALOGUE_URL = 'http://caviste.localhost/caviste2018/server/public';
 
 function reportError(message, type='secondary'){
    
@@ -19,7 +20,6 @@ function reportError(message, type='secondary'){
     }
 }
 
-
 function removeError(){
    
     $('#toolbar .alert').html('');
@@ -28,11 +28,8 @@ function removeError(){
 }
 
 
-
-
 function showWines() {
-    //initialistation
-   
+    //initialistation   
     $('#liste').empty();
     
     $.get(API_URL + '/wines',function(data){
@@ -42,32 +39,23 @@ function showWines() {
             $('#liste').append('<li class="list-group-item" data-id="'+vin.id+'">'+vin.name+'</li>');
         });
         
-        
-        
+       
         $('#liste li').on('click', function(){
             let idWine = $(this).data('id');
             
-
             $.get(API_URL + '/wines/'+idWine, function(data){
-                let vin = JSON.parse(data);
-                
+                let vin = JSON.parse(data);                
                 fillForm(vin);
-                
-                console.log(vin);
+              
             }).fail(function(){
                 reportError('Désolé, vin indisponible','error');
-
             });
-
         });
-    
-        
-        
+                   
     }).fail(function(){
         reportError('Désolé, service indisponible','error');
     });
 }
-
 
 function fillForm(vin, idForm){
     $('#frmWine #idWine').val(vin.id);
@@ -77,8 +65,27 @@ function fillForm(vin, idForm){
     $('#frmWine #regionWine').val(vin.region);
     $('#frmWine #yearWine').val(vin.year);
     $('#frmWine #notes').val(vin.description);
-    $('#frmWine figure img').attr('src','pictures/'+vin.picture);
+    $('#frmWine figure img').attr('src',CATALOGUE_URL+'pictures/'+vin.picture);
     $('#frmWine figure figcaption').html(vin.name);
+    
+    
+    
+    $('#uploadZone').uploadFile({
+        'url':API_URL+'/wines/pics',
+        'filename':'newPicture',
+        'acceptFiles':'image/*',
+        'onSuccess': function(files, data, xhr, pd){
+            if(data){
+                 //Actualiser l image
+                $('#frmWine figure img').attr('src',CATALOGUE_URL+'/pics/'+files[0]);
+                reportError('Image OK','success');
+             } else {
+                reportError('Image NOT OK!','error');
+             }
+
+        }
+    });
+    
 }
 
 function clearForm(){
@@ -89,7 +96,6 @@ function clearForm(){
     $('#frmWine #regionWine').val('');
     $('#frmWine #yearWine').val('');
     $('#frmWine #notes').val('');
-    $('#frmWine figure img').attr('src','pictures/wine1.jpg');
     $('#frmWine figure figcaption').html('');
     
     $('#frmWine #nameWine').focus();
@@ -106,14 +112,14 @@ function getFormData() {
     vin.region = $('#frmWine #regionWine').val();
     vin.year = $('#frmWine #yearWine').val();
     vin.description = $('#frmWine #notes').val();
-    vin.picture = $('#frmWine figure img').attr('src');
+    vin.picture = $('#frmWine figure img').attr('src')
+            .slice($('#frmWine figure img').attr('src').lastIndexOf('/'));
     
     if((vin.id.trim()!='' ? !$.isNumeric(vin.id): false) || !$.isNumeric(vin.year)
             || vin.name.trim()=='' 
             || vin.grapes.trim()=='' 
             || vin.country.trim()=='' 
             || vin.region.trim()=='' 
-            || vin.description.trim()=='' 
             || vin.picture.trim()==''){
         return null;
     }
@@ -192,23 +198,45 @@ $(document).ready(function(){
         //Retirer la notifiction d'erreur
         removeError()
        
-       //Récupérer les données du formulaire
-       let vin = getFormData();
-       
-       if(vin) {
-            //Sauver le vin dans la vase de données
-            $.post(API_URL+'/wines',vin, function(data){
-                if(data){
-                    reportError('Le vin a bien été enregistré','success');
-                } else {
+        //Récupérer les données du formulaire
+        let vin = getFormData();
+        
+        if(vin) {
+            if(vin.id ==''){
+                //Sauver le vin dans la vase de données
+                $.post(API_URL+'/wines',vin, function(data){
+                    if(data){
+                        //Afficher la liste
+                        showWines();
+                        clearForm();
+                        reportError('Le vin a bien été enregistré','success');
+                    } else {
+                        reportError('Désolé, Impossible de sauver ce vin!','error');
+                    }
+
+                },'json').fail(function(){
                      reportError('Désolé, Impossible de sauver ce vin!','error');
+                });
+            } else { //Modification d'un vin existant
+                $.ajax({
+                   'url':API_URL+'/wines/'+vin.id,
+                   'method':'PUT',
+                   'data':JSON.stringify(vin),
+                   'contentType':'application/json'
+                }).done(function(data){
+                    if(data){
+                        //Afficher la liste
+                        showWines();
+                        clearForm();
+                        reportError('Le vin a bien été enregistré','success');
+                    } else {
+                        reportError('Désolé, Impossible de sauver ce vin!','error');
+                    }
+                }).fail(function(){
+                    reportError('Désolé, Impossible de sauver ce vin!','error');
+                });
 
-                }
-
-            },'json').fail(function(){
-                reportError('Désolé, Impossible de sauver ce vin!','error');
-            });
-
+            }
 
 
             //Annuler l'envoi du formulaire
@@ -249,5 +277,14 @@ $(document).ready(function(){
          return false;
        
     });
+    
+
+
+       
+       
+       
+  
+    
+    
     
 });
